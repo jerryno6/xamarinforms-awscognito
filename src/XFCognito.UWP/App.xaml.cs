@@ -7,6 +7,7 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Security.Authentication.Web;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -14,6 +15,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using XFCognito.UWP.Services;
 
 namespace XFCognito.UWP
 {
@@ -97,6 +99,38 @@ namespace XFCognito.UWP
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
             deferral.Complete();
+        }
+
+        //If we want to suport the web to link with the app via deeplinking uri handler,
+        //enable this block of code and writing business for it.
+        //We might need to edit the protocol scheme & Host Name in Package.appxmanifest
+        protected override void OnActivated(IActivatedEventArgs e)
+        {
+            Frame rootFrame = Window.Current.Content as Frame;
+
+            // If we need to handle advanced deeplinking using universal URI or custom url path, use the code below.
+            if (e.Kind == ActivationKind.Protocol)
+            {
+                var protocolArgs = (ProtocolActivatedEventArgs)e;
+                var callBackurl = protocolArgs.Uri.AbsoluteUri;
+
+                if (UWPWebAuthenticatorImplementation.BrowserAuthenticationTaskCompletionSource != null)
+                {
+                    var authenticationResult = new UWPWebAuthenticationResult(callBackurl,
+                        Windows.Web.WebErrorStatus.Unknown, WebAuthenticationStatus.Success);
+
+                    UWPWebAuthenticatorImplementation.BrowserAuthenticationTaskCompletionSource.SetResult(authenticationResult);
+                }
+
+                if (rootFrame.Content == null)
+                {
+                    //Go to main page
+                    rootFrame.Navigate(typeof(MainPage), string.Empty);
+                }
+
+                // Ensure the current window is active
+                Window.Current.Activate();
+            }
         }
     }
 }
