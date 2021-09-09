@@ -26,10 +26,11 @@ namespace XFCognito.UWP.Services
         static Task<WebAuthenticatorResult> BrowserAuthenticateAsync(Uri url, Uri callbackUrl)
         {
             BrowserAuthenticationTaskCompletionSource = new TaskCompletionSource<WebAuthenticatorResult>();
-            //var urlParts = HttpUtility.ParseQueryString(url.ToString());
-            //urlParts.Set("redirect_uri", HttpUtility.UrlEncode(callbackUrl.ToString()));
-            //var uriWithCallBack = new Uri(urlParts.ToString());
-            Launcher.OpenAsync(url);
+            var urlParts = HttpUtility.ParseQueryString(url.ToString());
+            //urlParts.Set("redirect_uri", HttpUtility.UrlEncode(callbackUrl.OriginalString));
+            urlParts.Set("redirect_uri", Uri.EscapeUriString(callbackUrl.OriginalString)); 
+            var uriWithCallBack = new Uri(urlParts.ToString());
+            Launcher.OpenAsync(uriWithCallBack);
             return BrowserAuthenticationTaskCompletionSource.Task;
         }
 
